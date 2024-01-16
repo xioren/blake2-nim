@@ -139,6 +139,7 @@ proc hexDigest*(ctx: var Blake2bCtx): string =
   ## does not alter hash state
   var tempCtx = ctx
   let digest = tempctx.digest()
+  
   result = newStringOfCap(digest.len + digest.len)
   for b in digest:
     result.add(b.toHex(2).toLowerAscii())
