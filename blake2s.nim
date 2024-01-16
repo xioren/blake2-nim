@@ -204,7 +204,7 @@ proc newBlake2sCtx*(msg: string, key, salt, personal: string = "", digestSize: i
 
 when isMainModule:
   let message = "your-message"
-  var hash = newblake2sCtx(message)
+  var hash = newBlake2sCtx(message)
 
   assert hash.hexDigest() == "f8e9011b75e46cd58ab6ea75764c22e88825b7b7ef9f914109b40048a8494c99"
   hash.update("more-of-your-message")
