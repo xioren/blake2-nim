@@ -178,7 +178,7 @@ proc initBlake2bCtx(ctx: var Blake2bCtx, key, salt, personal: openArray[byte], d
   for i in 0 ..< wordsInState:
     ctx.state[i] = ctx.state[i] xor P[i]
   
-  # NOTE: if key is present, pad and add to buffer
+  # NOTE: pad key and add to buffer
   if key.len > 0:
     doAssert(key.len <= maxKeySize, "key size exceeds maximum $1 bytes" % $maxKeySize)
     var padKey: array[blockSize, uint8]
