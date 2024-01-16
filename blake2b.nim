@@ -148,6 +148,7 @@ proc hexDigest*(ctx: var Blake2bCtx): string =
 
 
 proc initBlake2bCtx(ctx: var Blake2bCtx, key, salt, personal: openArray[byte], digestSize: int) =
+  doAssert(digestSize <= maxDigestSize, "digest size exceeds maximum $1 bytes" % $maxDigestSize)
   if digestSize > 0:
     ctx.digestSize = digestSize
   else:
@@ -186,7 +187,6 @@ proc initBlake2bCtx(ctx: var Blake2bCtx, key, salt, personal: openArray[byte], d
 
 
 proc newBlake2bCtx*(msg, key, salt, personal: openArray[byte] = @[], digestSize: int = 0): Blake2bCtx =
-  doAssert(digestSize <= maxDigestSize, "digest size exceeds maximum $1 bytes" % $maxDigestSize)
   var ctx: Blake2bCtx
   initBlake2bCtx(ctx, key, salt, personal, digestSize)
   if msg.len > 0:
