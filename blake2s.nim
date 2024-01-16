@@ -105,7 +105,7 @@ proc padBuffer(ctx: var Blake2sCtx) =
 
 
 proc update*[T](ctx: var Blake2sCtx, msg: openArray[T]) {.inline.} =
-  ## move message into buffer and process as it fills.
+  ## copy message into buffer and process as it fills.
   for i in 0 ..< msg.len:
     if ctx.bufferIdx == blockSize:
       ctx.incOffset(ctx.bufferIdx)
