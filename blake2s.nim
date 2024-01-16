@@ -129,11 +129,15 @@ proc finalize(ctx: var Blake2sCtx): seq[byte] =
 
 
 proc digest*(ctx: var Blake2sCtx): seq[byte] =
+  ## produces a byte seq of length digestSize
+  ## does not alter hash state
   var tempCtx = ctx
   return tempctx.finalize()
 
 
 proc hexDigest*(ctx: var Blake2sCtx): string =
+  ## produces a hex string of length digestSize * 2
+  ## does not alter hash state
   var tempCtx = ctx
   let digest = tempctx.finalize()
   result = newStringOfCap(digest.len + digest.len)
