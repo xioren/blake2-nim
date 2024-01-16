@@ -1,1 +1,1 @@
-Pure Nim implementation of BLAKE2.
+Pure Nim implementation of BLAKE2. Tree Hashing not implemented.
