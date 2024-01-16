@@ -1,7 +1,7 @@
 import std/[bitops]
 
 
-# NOTE: https://datatracker.ietf.org/doc/html/rfc7693
+# NOTE: https://www.rfc-editor.org/rfc/rfc7693
 
 
 const
