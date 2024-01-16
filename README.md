@@ -1,1 +1,1 @@
-# blake2-nim
+Pure Nim implementation of BLAKE2.
