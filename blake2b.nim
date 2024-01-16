@@ -173,7 +173,7 @@ proc initBlake2bCtx(ctx: var Blake2bCtx, key, salt, personal: openArray[byte], d
     doAssert(personal.len <= maxPersonSize, "personalization size exceeds maximum $1 bytes" % $maxPersonSize)
     copyMem(addr P[6], unsafeAddr personal[0], personal.len)
   
-  # NOTE: XOR the first 8 words of the parameter block with the state
+  # NOTE: XOR state with the first 8 words of the parameter block
   for i in 0 ..< wordsInState:
     ctx.state[i] = ctx.state[i] xor P[i]
   
