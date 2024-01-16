@@ -119,7 +119,6 @@ proc finalize(ctx: var Blake2bCtx): seq[byte] =
   # NOTE: handle any remaining data in the buffer
   ctx.incOffset(ctx.bufferIdx)
   ctx.padBuffer()
-  # QUESTION: should this be unset if more data is added? should it only be set in temp contexts?
   ctx.lastBlockFlags[0] = 0xFFFFFFFFFFFFFFFF'u64
   ctx.compress(finalBlock = true)
 
