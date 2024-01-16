@@ -115,33 +115,30 @@ proc update*[T](ctx: var Blake2bCtx, input: openArray[T]) {.inline.} =
     inc ctx.bufferIdx
 
 
-proc finalize(ctx: var Blake2bCtx): seq[byte] =
-  # NOTE: handle any remaining data in the buffer
+proc finalize(ctx: var Blake2bCtx) =
+  # NOTE: pad and compress any remaining data in the buffer
   ctx.incOffset(ctx.bufferIdx)
   ctx.padBuffer()
   ctx.lastBlockFlags[0] = 0xFFFFFFFFFFFFFFFF'u64
   ctx.compress(finalBlock = true)
-
-  # NOTE: extract the hash from the state
-  result = newSeq[byte](ctx.digestSize)
-  for i in 0 ..< ctx.digestSize:
-    result[i] = byte((ctx.state[i div 8] shr (8 * (i mod 8))) and 0xFF)
-
-  return result
 
 
 proc digest*(ctx: var Blake2bCtx): seq[byte] =
   ## produces a byte seq of length digestSize
   ## does not alter hash state
   var tempCtx = ctx
-  return tempctx.finalize()
+  tempCtx.finalize()
+  
+  result = newSeq[byte](tempCtx.digestSize)
+  for i in 0 ..< tempCtx.digestSize:
+    result[i] = byte((tempCtx.state[i div 8] shr (8 * (i mod 8))) and 0xFF)
 
 
 proc hexDigest*(ctx: var Blake2bCtx): string =
   ## produces a hex string of length digestSize * 2
   ## does not alter hash state
   var tempCtx = ctx
-  let digest = tempctx.finalize()
+  let digest = tempctx.digest()
   result = newStringOfCap(digest.len + digest.len)
   for b in digest:
     result.add(b.toHex(2).toLowerAscii())
