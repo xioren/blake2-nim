@@ -128,7 +128,7 @@ proc digest*(ctx: var Blake2bCtx): seq[byte] =
   ## does not alter hash state
   var tempCtx = ctx
   tempCtx.finalize()
-  
+
   result = newSeq[byte](tempCtx.digestSize)
   for i in 0 ..< tempCtx.digestSize:
     result[i] = byte((tempCtx.state[i div 8] shr (8 * (i mod 8))) and 0xFF)
@@ -207,7 +207,7 @@ proc newBlake2bCtx*(msg: string, key, salt, personal: string = "", digestSize: i
 
 when isMainModule:
   let message = "your-message"
-  var hash = newblake2bCtx(message)
+  var hash = newBlake2bCtx(message)
 
   assert hash.hexDigest() == "d69b7ad28e9cdbf576e3490033ed226517fe52e7bc1961aa5bd05616ebbb4bd291bbff5b87a62b16a7c09bc4b5460d9f94018668d36f187d9876b761634b5065"
   hash.update("more-of-your-message")
