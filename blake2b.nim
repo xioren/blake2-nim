@@ -15,9 +15,9 @@ const
   blockSize     = 128 # buffer size
   rounds        = 12  # number of compression rounds
   maxDigestSize = 64
+  maxKeySize    = 64
   maxSaltSize   = 16
   maxPersonSize = 16
-  maxKeySize    = 64
   wordBits      = 64  # bits in word
   
   # NOTE: rotation constants
