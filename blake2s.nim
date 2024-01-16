@@ -104,12 +104,13 @@ proc padBuffer(ctx: var Blake2sCtx) =
     ctx.buffer[i] = 0'u8
 
 
-proc update*[T](ctx: var Blake2sCtx, input: openArray[T]) {.inline.} =
-  for i in 0 ..< input.len:
+proc update*[T](ctx: var Blake2sCtx, msg: openArray[T]) {.inline.} =
+  ## move message into buffer and process as it fills.
+  for i in 0 ..< msg.len:
     if ctx.bufferIdx == blockSize:
       ctx.incOffset(ctx.bufferIdx)
       ctx.compress()
-    ctx.buffer[ctx.bufferIdx] = uint8(input[i])
+    ctx.buffer[ctx.bufferIdx] = uint8(msg[i])
     inc ctx.bufferIdx
 
 
