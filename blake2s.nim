@@ -5,7 +5,7 @@ type
   Blake2sCtx* = object
     state: array[8, uint32]          # hash state
     offset: array[2, uint32]         # offset counters
-    lastBlockFlags: array[2, uint32]
+    lastBlock: array[2, uint32]      # last block flags
     buffer: array[64, byte]          # input buffer
     bufferIdx: uint8                 # track data in buffer
     digestSize: int
@@ -118,7 +118,7 @@ proc finalize(ctx: var Blake2sCtx) =
   # NOTE: pad and compress any remaining data in the buffer
   ctx.incOffset(ctx.bufferIdx)
   ctx.padBuffer()
-  ctx.lastBlockFlags[0] = 0xFFFFFFFF'u32
+  ctx.lastBlock[0] = 0xFFFFFFFF'u32
   ctx.compress(finalBlock = true)
 
 
