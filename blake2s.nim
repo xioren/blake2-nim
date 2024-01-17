@@ -50,11 +50,6 @@ const
 include blake2
 
 
-proc incOffset(ctx: var Blake2sCtx, increment: uint8) =
-   ctx.offset[0] = ctx.offset[0] + increment
-   if (ctx.offset[0] < increment): inc ctx.offset[1]
-
-
 proc toLittleEndian32(input: openArray[byte], start: int): uint32 =
   for i in 0 ..< 4:
     result = result or (uint32(input[start + i]) shl (i * 8))
@@ -101,15 +96,22 @@ proc compress(ctx: var Blake2sCtx, finalBlock: bool = false) =
 proc copyBlakeCtx(toThisCtx: var Blake2sCtx, fromThisCtx: Blake2sCtx) =
   for i, b in fromThisCtx.state:
     toThisCtx.state[i] = b
-  for i, b in fromThisCtx.offset:
-    toThisCtx.offset[i] = b
-  for i, b in fromThisCtx.lastBlock:
-    toThisCtx.lastBlock[i] = b
+  
+  toThisCtx.offset[0]    = fromThisCtx.offset[0]
+  toThisCtx.offset[1]    = fromThisCtx.offset[1]
+  toThisCtx.lastBlock[0] = fromThisCtx.offset[0]
+  toThisCtx.lastBlock[1] = fromThisCtx.offset[1]
+  
   for i, b in fromThisCtx.buffer:
     toThisCtx.buffer[i] = b
 
   toThisCtx.bufferIdx  = fromThisCtx.bufferIdx
   toThisCtx.digestSize = fromThisCtx.digestSize
+
+
+proc incOffset(ctx: var Blake2sCtx, increment: uint8) =
+   ctx.offset[0] = ctx.offset[0] + increment
+   if (ctx.offset[0] < increment): inc ctx.offset[1]
 
 
 proc padBuffer(ctx: var Blake2sCtx) =
@@ -130,9 +132,9 @@ proc update*[T](ctx: var Blake2sCtx, msg: openArray[T]) {.inline.} =
 
 proc finalize(ctx: var Blake2sCtx) =
   # NOTE: pad and compress any remaining data in the buffer
+  ctx.lastBlock[0] = 0xFFFFFFFF'u32
   ctx.incOffset(ctx.bufferIdx)
   ctx.padBuffer()
-  ctx.lastBlock[0] = 0xFFFFFFFF'u32
   ctx.compress(finalBlock = true)
 
 
@@ -199,7 +201,7 @@ proc initBlake2sCtx(ctx: var Blake2sCtx, key, salt, personal: openArray[byte], d
     ctx.update(padKey)
 
 
-proc newBlake2sCtx*(msg, key, salt, personal: openArray[byte] = @[],digestSize: int = 0): Blake2sCtx =
+proc newBlake2sCtx*(msg, key, salt, personal: openArray[byte] = @[], digestSize: int = 0): Blake2sCtx =
   var ctx: Blake2sCtx
   initBlake2sCtx(ctx, key, salt, personal, digestSize)
   if msg.len > 0:
