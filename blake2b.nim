@@ -5,10 +5,10 @@ type
   Blake2bCtx* = object
     state:      array[8, uint64] # hash state
     offset:     array[2, uint64] # offset counters
-    lastBlock:  array[2, uint64] # last block flags
     buffer:     array[128, byte] # input buffer
     bufferIdx:  uint8            # track data in buffer
     digestSize: int
+    lastBlock:  bool
 
 # NOTE: max message length 0 <= m < 2**128
 const
@@ -57,7 +57,7 @@ proc toLittleEndian64(input: openArray[byte], start: int): uint64 =
     result = result or (uint64(input[start + i]) shl (i * 8))
 
 
-proc compress(ctx: var Blake2bCtx, lastBlock: bool = false) =
+proc compress(ctx: var Blake2bCtx) =
   # NOTE: transfer buffer to uint64 array in little-endian format
   var m: array[16, uint64]
   for i in 0 ..< 16:
@@ -73,7 +73,7 @@ proc compress(ctx: var Blake2bCtx, lastBlock: bool = false) =
   v[12] = v[12] xor ctx.offset[0]
   v[13] = v[13] xor ctx.offset[1]
   
-  if lastBlock:
+  if ctx.lastBlock:
     v[14] = not v[14]
 
   # NOTE: compression
@@ -98,17 +98,16 @@ proc compress(ctx: var Blake2bCtx, lastBlock: bool = false) =
 proc copyBlakeCtx(toThisCtx: var Blake2bCtx, fromThisCtx: Blake2bCtx) =
   for i, b in fromThisCtx.state:
     toThisCtx.state[i] = b
-
-  toThisCtx.offset[0]    = fromThisCtx.offset[0]
-  toThisCtx.offset[1]    = fromThisCtx.offset[1]
-  # toThisCtx.lastBlock[0] = fromThisCtx.lastBlock[0]
-  # toThisCtx.lastBlock[1] = fromThisCtx.lastBlock[1]
   
   for i, b in fromThisCtx.buffer:
     toThisCtx.buffer[i] = b
 
+  toThisCtx.offset[0]    = fromThisCtx.offset[0]
+  toThisCtx.offset[1]    = fromThisCtx.offset[1]
+
   toThisCtx.bufferIdx  = fromThisCtx.bufferIdx
   toThisCtx.digestSize = fromThisCtx.digestSize
+  toThisCtx.lastBlock = fromThisCtx.lastBlock
 
 
 proc incOffset(ctx: var Blake2bCtx, increment: uint8) =
@@ -134,11 +133,12 @@ proc update*[T](ctx: var Blake2bCtx, msg: openArray[T]) {.inline.} =
 
 proc finalize(ctx: var Blake2bCtx) =
   ## pad and compress any remaining data in the buffer
-  # NOTE: using a bool argument instead
+  # NOTE: using a bool instead
   # ctx.lastBlock[0] = 0xFFFFFFFFFFFFFFFF'u64
+  ctx.lastBlock = true
   ctx.incOffset(ctx.bufferIdx)
   ctx.padBuffer()
-  ctx.compress(lastBlock = true)
+  ctx.compress()
 
 
 proc digest*(ctx: Blake2bCtx): seq[byte] =
