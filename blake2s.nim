@@ -1,13 +1,13 @@
-import std/[strutils]
+import strutils
 
 
 type
   Blake2sCtx* = object
-    state: array[8, uint32]          # hash state
-    offset: array[2, uint32]         # offset counters
-    lastBlock: array[2, uint32]      # last block flags
-    buffer: array[64, byte]          # input buffer
-    bufferIdx: uint8                 # track data in buffer
+    state:      array[8, uint32] # hash state
+    offset:     array[2, uint32] # offset counters
+    lastBlock:  array[2, uint32] # last block flags
+    buffer:     array[64, byte]  # input buffer
+    bufferIdx:  uint8            # track data in buffer
     digestSize: int
 
 # NOTE: max message length 0 <= m < 2**64
@@ -98,6 +98,20 @@ proc compress(ctx: var Blake2sCtx, finalBlock: bool = false) =
   ctx.bufferIdx = 0
 
 
+proc copyBlakeCtx(toThisCtx: var Blake2sCtx, fromThisCtx: Blake2sCtx) =
+  for i, b in fromThisCtx.state:
+    toThisCtx.state[i] = b
+  for i, b in fromThisCtx.offset:
+    toThisCtx.offset[i] = b
+  for i, b in fromThisCtx.lastBlock:
+    toThisCtx.lastBlock[i] = b
+  for i, b in fromThisCtx.buffer:
+    toThisCtx.buffer[i] = b
+
+  toThisCtx.bufferIdx  = fromThisCtx.bufferIdx
+  toThisCtx.digestSize = fromThisCtx.digestSize
+
+
 proc padBuffer(ctx: var Blake2sCtx) =
   ## fill remainder of buffer with zeros
   for i in ctx.bufferIdx..< blockSize:
@@ -122,10 +136,12 @@ proc finalize(ctx: var Blake2sCtx) =
   ctx.compress(finalBlock = true)
 
 
-proc digest*(ctx: var Blake2sCtx): seq[byte] =
+proc digest*(ctx: Blake2sCtx): seq[byte] =
   ## produces a byte seq of length digestSize
   ## does not alter hash state
-  var tempCtx = ctx
+  var tempCtx: Blake2sCtx
+  copyBlakeCtx(tempCtx, ctx)
+  
   tempCtx.finalize()
 
   result = newSeq[byte](tempCtx.digestSize)
@@ -133,10 +149,12 @@ proc digest*(ctx: var Blake2sCtx): seq[byte] =
     result[i] = byte((tempCtx.state[i div 4] shr (8 * (i mod 4))) and 0xFF)
 
 
-proc hexDigest*(ctx: var Blake2sCtx): string =
+proc hexDigest*(ctx: Blake2sCtx): string =
   ## produces a hex string of length digestSize * 2
   ## does not alter hash state
-  var tempCtx = ctx
+  var tempCtx: Blake2sCtx
+  copyBlakeCtx(tempCtx, ctx)
+  
   let digest = tempctx.digest()
   
   result = newStringOfCap(digest.len + digest.len)
