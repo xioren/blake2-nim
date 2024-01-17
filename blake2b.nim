@@ -54,7 +54,7 @@ include blake2
 
 proc incOffset(ctx: var Blake2bCtx, increment: uint8) =
    ctx.offset[0] = ctx.offset[0] + increment
-   if (ctx.offset[0] < increment): inc(ctx.offset[1])
+   if (ctx.offset[0] < increment): inc ctx.offset[1]
 
 
 proc toLittleEndian64(input: openArray[byte], start: int): uint64 =
@@ -72,7 +72,7 @@ proc compress(ctx: var Blake2bCtx, finalBlock: bool = false) =
   var v: array[16, uint64]
   for i in 0 ..< 8:
     v[i] = ctx.state[i]         # initialize v[0..7] with the current hash state
-    v[i + wordsInState] = IV[i] # initialize v[8..15] with IV  
+    v[i + wordsInState] = IV[i] # initialize v[8..15] with IV
   
   # NOTE: XOR with offset counters
   v[12] = v[12] xor ctx.offset[0]
@@ -138,7 +138,7 @@ proc finalize(ctx: var Blake2bCtx) =
   ctx.compress(finalBlock = true)
 
 
-proc digest*(ctx: var Blake2bCtx): seq[byte] =
+proc digest*(ctx: Blake2bCtx): seq[byte] =
   ## produces a byte seq of length digestSize
   ## does not alter hash state
   var tempCtx: Blake2bCtx
@@ -151,13 +151,10 @@ proc digest*(ctx: var Blake2bCtx): seq[byte] =
     result[i] = byte((tempCtx.state[i div 8] shr (8 * (i mod 8))) and 0xFF)
 
 
-proc hexDigest*(ctx: var Blake2bCtx): string =
+proc hexDigest*(ctx: Blake2bCtx): string =
   ## produces a hex string of length digestSize * 2
   ## does not alter hash state
-  var tempCtx: Blake2bCtx
-  copyBlakeCtx(tempCtx, ctx)
-  
-  let digest = tempctx.digest()
+  let digest = ctx.digest()
   
   result = newStringOfCap(digest.len + digest.len)
   for b in digest:
@@ -202,7 +199,6 @@ proc initBlake2bCtx(ctx: var Blake2bCtx, key, salt, personal: openArray[byte], d
     var padKey: array[blockSize, uint8]
     copyMem(addr padKey[0], unsafeAddr key[0], key.len)
     ctx.update(padKey)
-
 
 
 proc newBlake2bCtx*(msg, key, salt, personal: openArray[byte] = @[], digestSize: int = 0): Blake2bCtx =
