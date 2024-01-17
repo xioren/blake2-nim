@@ -55,7 +55,7 @@ proc toLittleEndian32(input: openArray[byte], start: int): uint32 =
     result = result or (uint32(input[start + i]) shl (i * 8))
 
 
-proc compress(ctx: var Blake2sCtx, finalBlock: bool = false) =
+proc compress(ctx: var Blake2sCtx, lastBlock: bool = false) =
   # NOTE: transfer buffer to uint32 array in little-endian format
   var m: array[16, uint32]
   for i in 0 ..< 16:
@@ -71,7 +71,7 @@ proc compress(ctx: var Blake2sCtx, finalBlock: bool = false) =
   v[12] = v[12] xor ctx.offset[0]
   v[13] = v[13] xor ctx.offset[1]
   
-  if finalBlock:
+  if lastBlock:
     v[14] = not v[14]
 
   # NOTE: compression
@@ -136,7 +136,7 @@ proc finalize(ctx: var Blake2sCtx) =
   # ctx.lastBlock[0] = 0xFFFFFFFF'u32
   ctx.incOffset(ctx.bufferIdx)
   ctx.padBuffer()
-  ctx.compress(finalBlock = true)
+  ctx.compress(lastBlock = true)
 
 
 proc digest*(ctx: Blake2sCtx): seq[byte] =
