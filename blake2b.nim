@@ -56,7 +56,7 @@ proc toLittleEndian64(input: openArray[byte], start: int): uint64 =
     result = result or (uint64(input[start + i]) shl (i * 8))
 
 
-proc compress(ctx: var Blake2bCtx, lastBlock = false) =
+proc compress(ctx: var Blake2bCtx, lastBlock: bool = false) =
   # NOTE: transfer buffer to uint64 array in little-endian format
   var m: array[16, uint64]
   for i in 0 ..< 16:
@@ -133,7 +133,7 @@ proc finalize(ctx: var Blake2bCtx) =
   ## pad and compress any remaining data in the buffer
   ctx.incOffset(ctx.bufferIdx)
   ctx.padBuffer()
-  ctx.compress(lastBlock = false)
+  ctx.compress(lastBlock = true)
 
 
 proc digest*(ctx: Blake2bCtx): seq[byte] =
