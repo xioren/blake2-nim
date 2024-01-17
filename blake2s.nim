@@ -5,7 +5,6 @@ type
   Blake2sCtx* = object
     state:      array[8, uint32] # hash state
     offset:     array[2, uint32] # offset counters
-    lastBlock:  array[2, uint32] # last block flags
     buffer:     array[64, byte]  # input buffer
     bufferIdx:  uint8            # track data in buffer
     digestSize: int
@@ -96,14 +95,11 @@ proc compress(ctx: var Blake2sCtx, lastBlock: bool = false) =
 proc copyBlakeCtx(toThisCtx: var Blake2sCtx, fromThisCtx: Blake2sCtx) =
   for i, b in fromThisCtx.state:
     toThisCtx.state[i] = b
-  
-  toThisCtx.offset[0]    = fromThisCtx.offset[0]
-  toThisCtx.offset[1]    = fromThisCtx.offset[1]
-  # toThisCtx.lastBlock[0] = fromThisCtx.lastBlock[0]
-  # toThisCtx.lastBlock[1] = fromThisCtx.lastBlock[1]
-  
   for i, b in fromThisCtx.buffer:
     toThisCtx.buffer[i] = b
+
+  toThisCtx.offset[0]    = fromThisCtx.offset[0]
+  toThisCtx.offset[1]    = fromThisCtx.offset[1]
 
   toThisCtx.bufferIdx  = fromThisCtx.bufferIdx
   toThisCtx.digestSize = fromThisCtx.digestSize
@@ -132,8 +128,6 @@ proc update*[T](ctx: var Blake2sCtx, msg: openArray[T]) {.inline.} =
 
 proc finalize(ctx: var Blake2sCtx) =
   ## pad and compress any remaining data in the buffer
-  # NOTE: using a bool argument instead
-  # ctx.lastBlock[0] = 0xFFFFFFFF'u32
   ctx.incOffset(ctx.bufferIdx)
   ctx.padBuffer()
   ctx.compress(lastBlock = true)
