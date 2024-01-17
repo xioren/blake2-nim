@@ -1,13 +1,13 @@
-import std/[strutils]
+import strutils
 
 
 type
   Blake2bCtx* = object
-    state: array[8, uint64]          # hash state
-    offset: array[2, uint64]         # offset counters
-    lastBlock: array[2, uint64]      # last block flags
-    buffer: array[128, byte]         # input buffer
-    bufferIdx: uint8                 # track data in buffer
+    state:      array[8, uint64] # hash state
+    offset:     array[2, uint64] # offset counters
+    lastBlock:  array[2, uint64] # last block flags
+    buffer:     array[128, byte] # input buffer
+    bufferIdx:  uint8            # track data in buffer
     digestSize: int
 
 # NOTE: max message length 0 <= m < 2**128
@@ -100,6 +100,20 @@ proc compress(ctx: var Blake2bCtx, finalBlock: bool = false) =
   ctx.bufferIdx = 0
 
 
+proc copyBlakeCtx(toThisCtx: var Blake2bCtx, fromThisCtx: Blake2bCtx) =
+  for i, b in fromThisCtx.state:
+    toThisCtx.state[i] = b
+  for i, b in fromThisCtx.offset:
+    toThisCtx.offset[i] = b
+  for i, b in fromThisCtx.lastBlock:
+    toThisCtx.lastBlock[i] = b
+  for i, b in fromThisCtx.buffer:
+    toThisCtx.buffer[i] = b
+
+  toThisCtx.bufferIdx  = fromThisCtx.bufferIdx
+  toThisCtx.digestSize = fromThisCtx.digestSize
+
+
 proc padBuffer(ctx: var Blake2bCtx) =
   ## fill remainder of buffer with zeros
   for i in ctx.bufferIdx ..< blockSize:
@@ -127,7 +141,9 @@ proc finalize(ctx: var Blake2bCtx) =
 proc digest*(ctx: var Blake2bCtx): seq[byte] =
   ## produces a byte seq of length digestSize
   ## does not alter hash state
-  var tempCtx = ctx
+  var tempCtx: Blake2bCtx
+  copyBlakeCtx(tempCtx, ctx)
+  
   tempCtx.finalize()
 
   result = newSeq[byte](tempCtx.digestSize)
@@ -138,7 +154,9 @@ proc digest*(ctx: var Blake2bCtx): seq[byte] =
 proc hexDigest*(ctx: var Blake2bCtx): string =
   ## produces a hex string of length digestSize * 2
   ## does not alter hash state
-  var tempCtx = ctx
+  var tempCtx: Blake2bCtx
+  copyBlakeCtx(tempCtx, ctx)
+  
   let digest = tempctx.digest()
   
   result = newStringOfCap(digest.len + digest.len)
