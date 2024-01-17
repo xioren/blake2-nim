@@ -52,7 +52,7 @@ include blake2
 
 proc incOffset(ctx: var Blake2sCtx, increment: uint8) =
    ctx.offset[0] = ctx.offset[0] + increment
-   if (ctx.offset[0] < increment): inc(ctx.offset[1])
+   if (ctx.offset[0] < increment): inc ctx.offset[1]
 
 
 proc toLittleEndian32(input: openArray[byte], start: int): uint32 =
@@ -152,10 +152,7 @@ proc digest*(ctx: Blake2sCtx): seq[byte] =
 proc hexDigest*(ctx: Blake2sCtx): string =
   ## produces a hex string of length digestSize * 2
   ## does not alter hash state
-  var tempCtx: Blake2sCtx
-  copyBlakeCtx(tempCtx, ctx)
-  
-  let digest = tempctx.digest()
+  let digest = ctx.digest()
   
   result = newStringOfCap(digest.len + digest.len)
   for b in digest:
