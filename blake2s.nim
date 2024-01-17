@@ -99,8 +99,8 @@ proc copyBlakeCtx(toThisCtx: var Blake2sCtx, fromThisCtx: Blake2sCtx) =
   
   toThisCtx.offset[0]    = fromThisCtx.offset[0]
   toThisCtx.offset[1]    = fromThisCtx.offset[1]
-  toThisCtx.lastBlock[0] = fromThisCtx.offset[0]
-  toThisCtx.lastBlock[1] = fromThisCtx.offset[1]
+  # toThisCtx.lastBlock[0] = fromThisCtx.lastBlock[0]
+  # toThisCtx.lastBlock[1] = fromThisCtx.lastBlock[1]
   
   for i, b in fromThisCtx.buffer:
     toThisCtx.buffer[i] = b
@@ -131,8 +131,9 @@ proc update*[T](ctx: var Blake2sCtx, msg: openArray[T]) {.inline.} =
 
 
 proc finalize(ctx: var Blake2sCtx) =
-  # NOTE: pad and compress any remaining data in the buffer
-  ctx.lastBlock[0] = 0xFFFFFFFF'u32
+  ## pad and compress any remaining data in the buffer
+  # NOTE: using a bool argument instead
+  # ctx.lastBlock[0] = 0xFFFFFFFF'u32
   ctx.incOffset(ctx.bufferIdx)
   ctx.padBuffer()
   ctx.compress(finalBlock = true)
