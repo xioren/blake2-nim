@@ -209,6 +209,10 @@ proc newBlake2bCtx*(msg, key, salt, personal: openArray[byte] = @[], digestSize:
 
 
 proc newBlake2bCtx*(msg: string, key, salt, personal: string = "", digestSize: int = 0): Blake2bCtx =
+  #[
+    NOTE: if any string inputs are hex strings meant to be interpreted as byte strings,
+    they must be converted first (with parseHexStr() for example)
+  ]#
   return newBlake2bCtx(
     msg.toOpenArrayByte(0, msg.len.pred), 
     key.toOpenArrayByte(0, key.len.pred),
@@ -219,9 +223,12 @@ proc newBlake2bCtx*(msg: string, key, salt, personal: string = "", digestSize: i
 
 
 when isMainModule:
-  let message = "your-message"
-  var hash = newBlake2bCtx(message)
+  include testing2b
+  
+  proc runTestVectors() =
+    for v in testVectors:
+      let ctx = newBlake2bCtx(v.input.parseHexStr(), v.key.parseHexStr())
+      echo v.hash
+      doAssert ctx.hexDigest() == v.hash
 
-  assert hash.hexDigest() == "d69b7ad28e9cdbf576e3490033ed226517fe52e7bc1961aa5bd05616ebbb4bd291bbff5b87a62b16a7c09bc4b5460d9f94018668d36f187d9876b761634b5065"
-  hash.update("more-of-your-message")
-  assert hash.hexDigest() == "36f8b828bca40b24e82e40aa5fd2996c8cfe1eaa421dd073bc61a0b25dcb9e824ead23ab352bd2274481a56f276e1b29390bf973800e52cd767fbff91a5055c8"
+  runTestVectors()
