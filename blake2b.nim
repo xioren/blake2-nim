@@ -228,7 +228,6 @@ when isMainModule:
   proc runTestVectors() =
     for v in testVectors:
       let ctx = newBlake2bCtx(v.input.parseHexStr(), v.key.parseHexStr())
-      echo v.hash
       doAssert ctx.hexDigest() == v.hash
 
   runTestVectors()
