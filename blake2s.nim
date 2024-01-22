@@ -220,7 +220,7 @@ proc newBlake2sCtx*(msg: string, key, salt, personal: string = "", digestSize: i
 
 
 when isMainModule:
-  include testing2s
+  include testing/testing2s
   
   proc runTestVectors() =
     for v in testVectors:
