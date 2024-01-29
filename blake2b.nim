@@ -164,10 +164,7 @@ proc hexDigest*(ctx: Blake2bCtx): string =
 proc initBlake2bCtx(ctx: var Blake2bCtx, key, salt, personal: openArray[byte], digestSize: int) =
   if not (digestSize <= maxDigestSize):
     raise newException(ValueError, "digest size exceeds maximum $1 bytes" % $maxDigestSize)
-  if digestSize > 0:
-    ctx.digestSize = digestSize
-  else:
-    ctx.digestSize = maxDigestSize
+  ctx.digestSize = digestSize
   
   # NOTE: initialize hash state with IV
   for i in 0 ..< wordsInState:
@@ -203,7 +200,7 @@ proc initBlake2bCtx(ctx: var Blake2bCtx, key, salt, personal: openArray[byte], d
     ctx.update(padKey)
 
 
-proc newBlake2bCtx*(msg, key, salt, personal: openArray[byte] = @[], digestSize: int = 0): Blake2bCtx =
+proc newBlake2bCtx*(msg, key, salt, personal: openArray[byte] = @[], digestSize: int = maxDigestSize): Blake2bCtx =
   var ctx: Blake2bCtx
   initBlake2bCtx(ctx, key, salt, personal, digestSize)
   if msg.len > 0:
@@ -212,7 +209,7 @@ proc newBlake2bCtx*(msg, key, salt, personal: openArray[byte] = @[], digestSize:
   return ctx
 
 
-proc newBlake2bCtx*(msg: string, key, salt, personal: string = "", digestSize: int = 0): Blake2bCtx =
+proc newBlake2bCtx*(msg: string, key, salt, personal: string = "", digestSize: int = maxDigestSize): Blake2bCtx =
   #[
     NOTE: if any string inputs are hex strings meant to be interpreted as byte strings,
     they must be converted first (with parseHexStr() for example)
