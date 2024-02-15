@@ -112,7 +112,7 @@ proc incOffset(ctx: var Blake2sCtx, increment: uint8) =
 
 proc padBuffer(ctx: var Blake2sCtx) =
   ## fill remainder of buffer with zeros
-  for i in ctx.bufferIdx..< blockSize:
+  for i in ctx.bufferIdx ..< blockSize:
     ctx.buffer[i] = 0'u8
 
 
